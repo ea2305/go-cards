@@ -1,4 +1,4 @@
-package controllers
+package main
 
 import (
 	"encoding/json"
@@ -7,6 +7,6 @@ import (
 
 var health_check = []string{"health_check"}
 
-func HealthCheck(w http.ResponseWriter, r *http.Request) {
+func (a *App) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(health_check)
 }
