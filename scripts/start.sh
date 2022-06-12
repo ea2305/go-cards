@@ -1,0 +1,1 @@
+$HOME/go/bin/go-cards 
