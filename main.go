@@ -10,7 +10,7 @@ func main() {
 		Addr: ":8080",
 	}
 
-	server := app.initApp(app, config)
+	server, _ := app.initApp(app, config)
 
 	fmt.Printf("[Starting server in localhost%v...]", config.Addr)
 	server.ListenAndServe()

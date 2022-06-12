@@ -12,7 +12,7 @@ type AppConfig struct {
 	Addr string
 }
 
-func (a *App) initApp(app App, config AppConfig) *http.Server {
+func (a *App) initApp(app App, config AppConfig) (*http.Server, *mux.Router) {
 	r := mux.NewRouter()
 	app.initRoutes(r)
 
@@ -20,5 +20,5 @@ func (a *App) initApp(app App, config AppConfig) *http.Server {
 		Addr:    config.Addr,
 		Handler: r,
 	}
-	return server
+	return server, r
 }
