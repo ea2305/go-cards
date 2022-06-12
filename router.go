@@ -7,5 +7,5 @@ import (
 )
 
 func (a *App) initRoutes(r *mux.Router) {
-	r.HandleFunc("/health_check", a.HealthCheck).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/health_check", a.HealthCheck).Methods(http.MethodGet)
 }

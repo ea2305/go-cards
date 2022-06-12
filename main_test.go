@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -26,17 +27,39 @@ func setup() {
 
 func TestMain(m *testing.M) {
 	setup()
-	fmt.Println("[Starting test]")
+	fmt.Println("===================| Before |===================")
 
 	code := m.Run()
 
-	fmt.Println("[Ending test]")
+	fmt.Println("===================| After |===================")
+
 	os.Exit(code)
 }
 
+func createRequest(verb string, route string, body io.Reader) (*http.Request, *httptest.ResponseRecorder, error) {
+	req, err := http.NewRequest(verb, route, body)
+	if err != nil {
+		fmt.Printf("Error creating request: [%v](%v)", verb, route)
+		return nil, nil, err
+	}
+	res := httptest.NewRecorder()
+	return req, res, nil
+}
+
 func TestHealthCheckResponse(t *testing.T) {
-	request, _ := http.NewRequest("GET", "/health_check", nil)
-	response := httptest.NewRecorder()
+	var request, response, err = createRequest("GET", "/api/v1/health_check", nil)
+	if err != nil {
+		t.Fail()
+	}
 	router.ServeHTTP(response, request)
-	assert.Equal(t, 200, response.Code, "OK response is expected")
+	assert.Equal(t, 200, response.Code)
+}
+
+func TestCreateDeck(t *testing.T) {
+	var request, response, err = createRequest("POST", "/api/v1/decks", nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 201, response.Code)
 }
