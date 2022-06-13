@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -53,6 +54,11 @@ func TestHealthCheckResponse(t *testing.T) {
 	}
 	router.ServeHTTP(response, request)
 	assert.Equal(t, 200, response.Code)
+
+	var data map[string]string
+	json.Unmarshal(response.Body.Bytes(), &data)
+
+	assert.Equal(t, "ok", data["status"])
 }
 
 func TestCreateDeck(t *testing.T) {
@@ -62,4 +68,14 @@ func TestCreateDeck(t *testing.T) {
 	}
 	router.ServeHTTP(response, request)
 	assert.Equal(t, 201, response.Code)
+
+	var data Deck
+	json.Unmarshal(response.Body.Bytes(), &data)
+
+	assert.NotNil(t, data.Id)
+	assert.NotNil(t, data.Shuffled)
+	assert.Equal(t, false, data.Shuffled)
+	assert.NotNil(t, data.Remaining)
+	assert.Equal(t, 52, data.Remaining)
+	assert.Equal(t, 52, len(data.Cards))
 }
