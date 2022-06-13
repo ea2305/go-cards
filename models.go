@@ -104,3 +104,37 @@ func GetDeck(id string) (Deck, error) {
 	}
 	return Deck{}, errors.New("deck not found")
 }
+
+func DrawCard(id string, count int) ([]Card, error) {
+	// inmemory implementation
+	var deck, err = GetDeck(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(deck.Cards) < count {
+		return nil, errors.New("not enough cards")
+	}
+	// get elements from the beginning of the list
+	var index = 0
+	var cards = make([]Card, count)
+	var copyCards = make([]Card, len(deck.Cards))
+	copy(copyCards, deck.Cards)
+	cards = copySlice(copyCards, count)
+
+	cardsUpdate := append(deck.Cards[:index], deck.Cards[index+count:]...)
+	copy(deck.Cards, cardsUpdate)
+
+	return cards, nil
+}
+
+func copySlice(slice []Card, count int) []Card {
+	var cards []Card
+	for index, card := range slice {
+		cards = append(cards, card)
+		if index == count-1 {
+			return cards
+		}
+	}
+	return cards
+}

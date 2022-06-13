@@ -200,3 +200,40 @@ func TestGetDeckWrongUuidFormat(t *testing.T) {
 	router.ServeHTTP(response, request)
 	assert.Equal(t, 404, response.Code)
 }
+
+func TestDrawCards(t *testing.T) {
+	var deck, _ = CreateDeck(false, nil)
+	var fistCardCode = deck.Cards[0].Code
+	var id = deck.Id
+	var request, response, err = createRequest("PATCH", fmt.Sprintf("/api/v1/decks/%v?count=1", id), nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 200, response.Code)
+
+	var data map[string][]Card
+	json.Unmarshal(response.Body.Bytes(), &data)
+
+	assert.Equal(t, 1, len(data))
+	if len(data) > 0 {
+		// pick elements from the beginning
+		assert.Equal(t, fistCardCode, data["cards"][0].Code)
+	}
+}
+
+func TestDrawCardsWithGreaterCount(t *testing.T) {
+	var deck, _ = CreateDeck(false, nil)
+	var id = deck.Id
+	var request, response, err = createRequest("PATCH", fmt.Sprintf("/api/v1/decks/%v?count=54", id), nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 400, response.Code)
+
+	var data map[string]string
+	json.Unmarshal(response.Body.Bytes(), &data)
+
+	assert.Contains(t, data["error"], "not enough cards")
+}
