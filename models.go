@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"strconv"
 )
 
@@ -18,19 +19,19 @@ type Card struct {
 	Code  string `json:"code"`
 }
 
-func GetDeck() Deck {
-	cards := GetCards()
+func GetDeck(shuffled bool) Deck {
+	cards := GetCards(shuffled)
 
 	var deck = Deck{
 		Id:        "uudid", // TODO implement uuid
-		Shuffled:  false,
+		Shuffled:  shuffled,
 		Remaining: len(cards),
 		Cards:     cards,
 	}
 	return deck
 }
 
-func GetCards() []Card {
+func GetCards(shuffled bool) []Card {
 	var cards []Card
 	var suits = [4]string{"CLUBS", "DIAMONDS", "HEARTS", "SPADES"}
 	var suit_codes = [4]string{"C", "D", "H", "S"}
@@ -53,5 +54,13 @@ func GetCards() []Card {
 			cards = append(cards, card)
 		}
 	}
+
+	if shuffled {
+		for i := range cards {
+			j := rand.Intn(i + 1)
+			cards[i], cards[j] = cards[j], cards[i]
+		}
+	}
+
 	return cards
 }

@@ -79,3 +79,22 @@ func TestCreateDeck(t *testing.T) {
 	assert.Equal(t, 52, data.Remaining)
 	assert.Equal(t, 52, len(data.Cards))
 }
+
+func TestCreateShuffledDeck(t *testing.T) {
+	var request, response, err = createRequest("POST", "/api/v1/decks?shuffled=true", nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 201, response.Code)
+
+	var data Deck
+	json.Unmarshal(response.Body.Bytes(), &data)
+
+	assert.NotNil(t, data.Id)
+	assert.NotNil(t, data.Shuffled)
+	assert.Equal(t, true, data.Shuffled)
+	assert.NotNil(t, data.Remaining)
+	assert.Equal(t, 52, data.Remaining)
+	assert.Equal(t, 52, len(data.Cards))
+}
