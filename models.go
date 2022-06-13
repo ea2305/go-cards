@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"math/rand"
 	"strconv"
 )
@@ -19,8 +21,23 @@ type Card struct {
 	Code  string `json:"code"`
 }
 
-func GetDeck(shuffled bool) Deck {
-	cards := GetCards(shuffled)
+func GetDeck(shuffled bool, selection []string) (Deck, error) {
+	rawCards := GetCards(shuffled)
+	var cards []Card
+
+	if len(selection) > 0 {
+		for _, card := range rawCards {
+			for index, find := range selection {
+				if card.Code == find {
+					cards = append(cards, card)
+					// removes element if the selection matches to validate the empty list later.
+					selection = append(selection[:index], selection[index+1:]...)
+				}
+			}
+		}
+	} else {
+		cards = rawCards
+	}
 
 	var deck = Deck{
 		Id:        "uudid", // TODO implement uuid
@@ -28,7 +45,13 @@ func GetDeck(shuffled bool) Deck {
 		Remaining: len(cards),
 		Cards:     cards,
 	}
-	return deck
+
+	if len(selection) > 0 {
+		// logs
+		return deck, errors.New("some cards we not found: " + fmt.Sprintf("%v != %v", deck.Cards, selection))
+	} else {
+		return deck, nil
+	}
 }
 
 func GetCards(shuffled bool) []Card {

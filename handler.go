@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func responseError(w http.ResponseWriter, code int, message string) {
@@ -32,7 +33,13 @@ func (a *App) HealthCheck(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) CreateDeck(w http.ResponseWriter, r *http.Request) {
 	var queryShuffle = r.URL.Query().Get("shuffled")
+	var queryCards = r.URL.Query().Get("cards")
 	var shuffled = false
+	var selection []string
+	if queryCards != "" {
+		var split = strings.Split(queryCards, ",")
+		selection = split
+	}
 	if queryShuffle != "" {
 		var parsed, err = strconv.ParseBool(queryShuffle)
 		if err != nil {
@@ -42,6 +49,12 @@ func (a *App) CreateDeck(w http.ResponseWriter, r *http.Request) {
 		}
 		shuffled = parsed
 	}
-	deck := GetDeck(shuffled)
+
+	deck, err := GetDeck(shuffled, selection)
+	if err != nil {
+		// logs
+		responseError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 	responseJson(w, http.StatusCreated, deck)
 }

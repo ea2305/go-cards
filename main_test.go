@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -40,6 +41,7 @@ func TestMain(m *testing.M) {
 func createRequest(verb string, route string, body io.Reader) (*http.Request, *httptest.ResponseRecorder, error) {
 	req, err := http.NewRequest(verb, route, body)
 	if err != nil {
+		// logs
 		fmt.Printf("Error creating request: [%v](%v)", verb, route)
 		return nil, nil, err
 	}
@@ -97,4 +99,29 @@ func TestCreateShuffledDeck(t *testing.T) {
 	assert.NotNil(t, data.Remaining)
 	assert.Equal(t, 52, data.Remaining)
 	assert.Equal(t, 52, len(data.Cards))
+}
+
+func TestCreateCustomDeck(t *testing.T) {
+	var reqCards = []string{"CQ", "DJ", "H7", "H8"}
+	var reqCardStr = strings.Join(reqCards[:], ",")
+	var request, response, err = createRequest("POST", "/api/v1/decks?cards="+reqCardStr, nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 201, response.Code)
+
+	var data Deck
+	json.Unmarshal(response.Body.Bytes(), &data)
+
+	assert.NotNil(t, data.Id)
+	assert.NotNil(t, data.Shuffled)
+	assert.NotNil(t, data.Remaining)
+	assert.Equal(t, len(reqCards), data.Remaining)
+	assert.Equal(t, len(reqCards), len(data.Cards))
+	if len(data.Cards) == len(reqCards) {
+		for index, card := range reqCards {
+			assert.Equal(t, card, data.Cards[index].Code)
+		}
+	}
 }
