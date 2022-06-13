@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 func responseError(w http.ResponseWriter, code int, message string) {
@@ -50,11 +52,27 @@ func (a *App) CreateDeck(w http.ResponseWriter, r *http.Request) {
 		shuffled = parsed
 	}
 
-	deck, err := GetDeck(shuffled, selection)
+	deck, err := CreateDeck(shuffled, selection)
 	if err != nil {
 		// logs
 		responseError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	responseJson(w, http.StatusCreated, deck)
+}
+
+func (a *App) GetDeck(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		// logs
+		responseError(w, http.StatusBadRequest, "missing id parameter")
+		return
+	}
+	var deck, err = GetDeck(id)
+	if err != nil {
+		responseError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	responseJson(w, http.StatusOK, deck)
 }

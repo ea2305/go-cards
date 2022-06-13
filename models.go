@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 type Deck struct {
@@ -21,8 +23,10 @@ type Card struct {
 	Code  string `json:"code"`
 }
 
-func GetDeck(shuffled bool, selection []string) (Deck, error) {
-	rawCards := GetCards(shuffled)
+var decks []Deck
+
+func CreateDeck(shuffled bool, selection []string) (Deck, error) {
+	rawCards := GetCards()
 	var cards []Card
 
 	if len(selection) > 0 {
@@ -39,12 +43,22 @@ func GetDeck(shuffled bool, selection []string) (Deck, error) {
 		cards = rawCards
 	}
 
+	if shuffled {
+		for i := range cards {
+			j := rand.Intn(i + 1)
+			cards[i], cards[j] = cards[j], cards[i]
+		}
+	}
+
 	var deck = Deck{
-		Id:        "uudid", // TODO implement uuid
+		Id:        uuid.NewString(), // TODO implement uuid
 		Shuffled:  shuffled,
 		Remaining: len(cards),
 		Cards:     cards,
 	}
+
+	// TODO provisional store strategy
+	decks = append(decks, deck)
 
 	if len(selection) > 0 {
 		// logs
@@ -54,7 +68,7 @@ func GetDeck(shuffled bool, selection []string) (Deck, error) {
 	}
 }
 
-func GetCards(shuffled bool) []Card {
+func GetCards() []Card {
 	var cards []Card
 	var suits = [4]string{"CLUBS", "DIAMONDS", "HEARTS", "SPADES"}
 	var suit_codes = [4]string{"C", "D", "H", "S"}
@@ -78,12 +92,15 @@ func GetCards(shuffled bool) []Card {
 		}
 	}
 
-	if shuffled {
-		for i := range cards {
-			j := rand.Intn(i + 1)
-			cards[i], cards[j] = cards[j], cards[i]
+	return cards
+}
+
+func GetDeck(id string) (Deck, error) {
+	// uses in memory deck, TODO implement database strategy
+	for _, deck := range decks {
+		if deck.Id == id {
+			return deck, nil
 		}
 	}
-
-	return cards
+	return Deck{}, errors.New("deck not found")
 }

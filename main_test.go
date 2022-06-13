@@ -158,3 +158,45 @@ func TestCreateCustomShuffledDeck(t *testing.T) {
 	assert.Equal(t, len(reqCards), data.Remaining)
 	assert.Equal(t, len(reqCards), len(data.Cards))
 }
+
+func TestGetDeck(t *testing.T) {
+	var deck, _ = CreateDeck(false, nil)
+	var id = deck.Id
+	var request, response, err = createRequest("GET", "/api/v1/decks/"+id, nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 200, response.Code)
+
+	var data Deck
+	json.Unmarshal(response.Body.Bytes(), &data)
+	assert.NotNil(t, data.Id)
+	assert.Equal(t, data.Id, id)
+	assert.NotNil(t, data.Cards)
+	assert.Equal(t, len(deck.Cards), len(data.Cards))
+}
+
+func TestGetDeckNotFound(t *testing.T) {
+	var request, response, err = createRequest("GET", "/api/v1/decks/3871bbef-2736-4416-b04f-d7bfb51b75a2", nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 404, response.Code)
+
+	var data map[string]string
+	json.Unmarshal(response.Body.Bytes(), &data)
+
+	assert.NotNil(t, data["error"])
+	assert.Contains(t, data["error"], "deck not found")
+}
+
+func TestGetDeckWrongUuidFormat(t *testing.T) {
+	var request, response, err = createRequest("GET", "/api/v1/decks/3871b75a2", nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 404, response.Code)
+}
