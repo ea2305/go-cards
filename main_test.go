@@ -93,7 +93,6 @@ func TestCreateShuffledDeck(t *testing.T) {
 	var data Deck
 	json.Unmarshal(response.Body.Bytes(), &data)
 
-	assert.NotNil(t, data.Id)
 	assert.NotNil(t, data.Shuffled)
 	assert.Equal(t, true, data.Shuffled)
 	assert.NotNil(t, data.Remaining)
@@ -114,8 +113,6 @@ func TestCreateCustomDeck(t *testing.T) {
 	var data Deck
 	json.Unmarshal(response.Body.Bytes(), &data)
 
-	assert.NotNil(t, data.Id)
-	assert.NotNil(t, data.Shuffled)
 	assert.NotNil(t, data.Remaining)
 	assert.Equal(t, len(reqCards), data.Remaining)
 	assert.Equal(t, len(reqCards), len(data.Cards))
@@ -124,4 +121,40 @@ func TestCreateCustomDeck(t *testing.T) {
 			assert.Equal(t, card, data.Cards[index].Code)
 		}
 	}
+}
+
+func TestCreateCustomDeckWithWrongFormat(t *testing.T) {
+	var reqCards = []string{"CQ", "DJ", "ZY", "ZX"}
+	var reqCardStr = strings.Join(reqCards[:], ",")
+	var request, response, err = createRequest("POST", "/api/v1/decks?cards="+reqCardStr, nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 400, response.Code)
+
+	var data map[string]string
+	json.Unmarshal(response.Body.Bytes(), &data)
+	assert.NotNil(t, data["error"])
+	assert.Contains(t, data["error"], "some cards we not found:")
+}
+
+func TestCreateCustomShuffledDeck(t *testing.T) {
+	var reqCards = []string{"CQ", "DJ", "H7", "H8"}
+	var reqCardStr = strings.Join(reqCards[:], ",")
+	var request, response, err = createRequest("POST", "/api/v1/decks?shuffled=true&cards="+reqCardStr, nil)
+	if err != nil {
+		t.Fail()
+	}
+	router.ServeHTTP(response, request)
+	assert.Equal(t, 201, response.Code)
+
+	var data Deck
+	json.Unmarshal(response.Body.Bytes(), &data)
+
+	assert.NotNil(t, data.Shuffled)
+	assert.NotNil(t, data.Remaining)
+	assert.Equal(t, true, data.Shuffled)
+	assert.Equal(t, len(reqCards), data.Remaining)
+	assert.Equal(t, len(reqCards), len(data.Cards))
 }
