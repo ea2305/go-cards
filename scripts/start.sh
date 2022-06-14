@@ -1,1 +1,2 @@
-$HOME/go/bin/go-cards 
+docker-compose build
+docker-compose up db api

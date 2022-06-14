@@ -1,1 +1,0 @@
-go install github.com/ea2305/go-cards

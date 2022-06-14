@@ -21,12 +21,12 @@ func setup() {
 		Addr: ":8081",
 		Database: DatabaseConfig{
 			driver: "postgres",
-			user:   "root",
-			pass:   "root",
-			name:   "database-testing ",
-			host:   "localhost",
-			port:   "database-testing ",
-			ssl:    "disable",
+			user:   os.Getenv("DB_USER"),
+			pass:   os.Getenv("DB_PASS"),
+			name:   os.Getenv("DB_NAME"),
+			host:   os.Getenv("DB_HOST"),
+			port:   os.Getenv("DB_PORT"),
+			ssl:    os.Getenv("DB_SSL"),
 		},
 	}
 
