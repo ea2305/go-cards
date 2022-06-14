@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -60,33 +63,19 @@ func (app *App) initApp(config AppConfig) {
 }
 
 func (app *App) migrateTables() {
-	const migrations = `
-		CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+	driver, err := postgres.WithInstance(app.DB.Unsafe().DB, &postgres.Config{})
 
-		create table IF NOT EXISTS decks (
-			id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-			shuffled BOOLEAN NOT NULL,
-			remaining INT NOT null,
-			created_at timestamp
-		);
-		
-		create table IF NOT EXISTS cards (
-			id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-			value VARCHAR(50) NOT NULL,
-			suit VARCHAR(50) NOT NULL,
-			code VARCHAR(50) NOT null,
-			created_at timestamp
-		);
-		
-		create table IF NOT EXISTS card_deck (
-			id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-			card_id uuid NOT null REFERENCES cards (id),
-				deck_id uuid NOT null REFERENCES decks (id),
-				created_at timestamp
-		);
-	`
-
-	if _, err := app.DB.Exec(migrations); err != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://db/migration",
+		"postgres", driver)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m.Up()
 }

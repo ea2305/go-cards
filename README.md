@@ -23,3 +23,17 @@ This Repository implements methods to create, open and draw cards from one deck 
 > Run integration test with docker
 
 - `./scripts/test.sh`
+
+### Migrations
+
+_Setup_
+
+In order to create new migrations install the following dependency:
+
+`brew install golang-migrate`
+
+_Create new migration_
+
+`migrate create -ext sql -dir db/migration -seq table_names`
+
+> Migrations will be execute automatically at the init phase of the server
