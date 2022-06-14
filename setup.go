@@ -54,14 +54,12 @@ func (app *App) initApp(config AppConfig) {
 		log.Fatalln(err.Error())
 	}
 
-	migrateTables(db)
-
 	app.Server = server
 	app.Router = router
 	app.DB = db
 }
 
-func migrateTables(db *sqlx.DB) {
+func (app *App) migrateTables() {
 	const migrations = `
 		CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -88,7 +86,7 @@ func migrateTables(db *sqlx.DB) {
 		);
 	`
 
-	if _, err := db.Exec(migrations); err != nil {
+	if _, err := app.DB.Exec(migrations); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -1,0 +1,34 @@
+services:
+
+  testing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: "go test -v"
+    ports:
+      - "8081:8081"
+    depends_on: 
+      - db-test
+    environment:
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: postgres
+      DB_HOST: db-test
+      DB_PORT: 5432
+      DB_SSL: disable
+    networks:
+      - backend-test
+
+  db-test:
+    image: postgres:14.3-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432"
+    networks:
+      - backend-test
+
+networks:
+  backend-test:

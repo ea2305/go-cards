@@ -21,6 +21,7 @@ func main() {
 	}
 
 	app.initApp(config)
+	app.migrateTables()
 
 	fmt.Printf("[Starting server in localhost%v...]", config.Addr)
 	app.Server.ListenAndServe()

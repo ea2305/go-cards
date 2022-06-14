@@ -37,6 +37,7 @@ func setup() {
 func TestMain(m *testing.M) {
 	setup()
 	fmt.Println("===================| Before |===================")
+	app.migrateTables()
 
 	code := m.Run()
 
