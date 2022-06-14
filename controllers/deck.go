@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"encoding/json"
@@ -29,12 +29,12 @@ func responseJson(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(json)
 }
 
-func (a *App) HealthCheck(w http.ResponseWriter, r *http.Request) {
+func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	var status = map[string]string{"status": "ok"}
 	responseJson(w, http.StatusOK, status)
 }
 
-func (a *App) CreateDeck(w http.ResponseWriter, r *http.Request) {
+func CreateDeck(w http.ResponseWriter, r *http.Request) {
 	var queryShuffle = r.URL.Query().Get("shuffled")
 	var queryCards = r.URL.Query().Get("cards")
 	var shuffled = false
@@ -62,7 +62,7 @@ func (a *App) CreateDeck(w http.ResponseWriter, r *http.Request) {
 	responseJson(w, http.StatusCreated, deck)
 }
 
-func (a *App) GetDeck(w http.ResponseWriter, r *http.Request) {
+func GetDeck(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
 	if !ok {
@@ -78,7 +78,7 @@ func (a *App) GetDeck(w http.ResponseWriter, r *http.Request) {
 	responseJson(w, http.StatusOK, deck)
 }
 
-func (a *App) DrawCard(w http.ResponseWriter, r *http.Request) {
+func DrawCard(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
 	if !ok {
