@@ -1,0 +1,39 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on: 
+      - db
+    environment:
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_SSL: disable
+    networks:
+      - backend
+
+  db:
+    image: postgres:14.3-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432" # I'm using that port for my localdb
+    volumes: 
+      - db:/var/lib/postgresql/data
+    networks:
+      - backend
+
+volumes:
+  db:
+    driver: local
+
+networks:
+  backend:
