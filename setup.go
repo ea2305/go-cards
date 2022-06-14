@@ -79,3 +79,21 @@ func (app *App) migrateTables() {
 
 	m.Up()
 }
+
+func (app *App) rollbackTables() {
+	driver, err := postgres.WithInstance(app.DB.Unsafe().DB, &postgres.Config{})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://db/migration",
+		"postgres", driver)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m.Down()
+}

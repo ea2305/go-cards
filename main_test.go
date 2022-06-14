@@ -42,6 +42,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	fmt.Println("===================| After |===================")
+	app.rollbackTables()
 
 	os.Exit(code)
 }
