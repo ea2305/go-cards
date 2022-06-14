@@ -131,14 +131,12 @@ func QueryAllCards() ([]Card, error) {
 
 func StoreDeck(shuffled bool, remaining int, cards []Card) (Deck, error) {
 	tx := database.Connection.MustBegin()
-	// insertResult := tx.MustExec("INSERT INTO decks (shuffled, remaining) VALUES ($1, $2) RETURNING id;", deck.Shuffled, deck.Remaining)
 	var deckId string
 	tx.QueryRow("INSERT INTO decks (shuffled, remaining) VALUES ($1, $2) RETURNING id;", shuffled, remaining).Scan(&deckId)
 
 	for _, card := range cards {
 		tx.MustExec("INSERT INTO card_deck (card_id, deck_id) VALUES ($1, $2);", card.Id, deckId)
 	}
-
 	commitErr := tx.Commit()
 	if commitErr != nil {
 		return Deck{}, commitErr
