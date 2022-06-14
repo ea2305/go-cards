@@ -10,21 +10,27 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
 
-var router *mux.Router
+var app = App{}
 
 func setup() {
 	var config = AppConfig{
 		Addr: ":8081",
+		Database: DatabaseConfig{
+			driver: "postgres",
+			user:   "root",
+			pass:   "root",
+			name:   "database-testing ",
+			host:   "localhost",
+			port:   "database-testing ",
+			ssl:    "disable",
+		},
 	}
-	app := App{}
 
 	// TODO data store strategy
-	_, r := app.initApp(app, config)
-	router = r
+	app.initApp(config)
 }
 
 func TestMain(m *testing.M) {
@@ -54,7 +60,7 @@ func TestHealthCheckResponse(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 200, response.Code)
 
 	var data map[string]string
@@ -68,7 +74,7 @@ func TestCreateDeck(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 201, response.Code)
 
 	var data Deck
@@ -87,7 +93,7 @@ func TestCreateShuffledDeck(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 201, response.Code)
 
 	var data Deck
@@ -107,7 +113,7 @@ func TestCreateCustomDeck(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 201, response.Code)
 
 	var data Deck
@@ -130,7 +136,7 @@ func TestCreateCustomDeckWithWrongFormat(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 400, response.Code)
 
 	var data map[string]string
@@ -146,7 +152,7 @@ func TestCreateCustomShuffledDeck(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 201, response.Code)
 
 	var data Deck
@@ -166,7 +172,7 @@ func TestGetDeck(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 200, response.Code)
 
 	var data Deck
@@ -182,7 +188,7 @@ func TestGetDeckNotFound(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 404, response.Code)
 
 	var data map[string]string
@@ -197,7 +203,7 @@ func TestGetDeckWrongUuidFormat(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 404, response.Code)
 }
 
@@ -209,7 +215,7 @@ func TestDrawCards(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 200, response.Code)
 
 	var data map[string][]Card
@@ -229,7 +235,7 @@ func TestDrawCardsWithGreaterCount(t *testing.T) {
 	if err != nil {
 		t.Fail()
 	}
-	router.ServeHTTP(response, request)
+	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 400, response.Code)
 
 	var data map[string]string
