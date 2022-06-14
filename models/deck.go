@@ -6,7 +6,6 @@ import (
 	"math/rand"
 
 	"github.com/ea2305/go-cards/database"
-	"github.com/google/uuid"
 )
 
 type Deck struct {
@@ -29,7 +28,7 @@ type Card struct {
 var decks []Deck
 
 func CreateDeck(shuffled bool, selection []string) (Deck, error) {
-	rawCards, err := GetCards()
+	rawCards, err := QueryAllCards()
 	if err != nil {
 		return Deck{}, err
 	}
@@ -57,33 +56,22 @@ func CreateDeck(shuffled bool, selection []string) (Deck, error) {
 		}
 	}
 
-	var deck = Deck{
-		Id:        uuid.NewString(),
-		Shuffled:  shuffled,
-		Remaining: len(cards),
-		Cards:     cards,
-	}
+	deck, storeErr := StoreDeck(shuffled, len(cards), cards)
 
-	// TODO provisional store strategy
+	// TODO provisional store strategy - clean up after open and draw are migrated
 	decks = append(decks, deck)
+
+	if storeErr != nil {
+		// logs
+		return deck, storeErr
+	}
 
 	if len(selection) > 0 {
 		// logs
-		return deck, errors.New("some cards we not found: " + fmt.Sprintf("%v != %v", deck.Cards, selection))
+		return deck, errors.New("some cards we not found: " + fmt.Sprint(selection))
 	} else {
 		return deck, nil
 	}
-}
-
-func GetCards() ([]Card, error) {
-	var cards []Card
-	err := database.Connection.Select(&cards, "select * from cards;")
-	if err != nil {
-		// logs
-		return nil, err
-	}
-
-	return cards, nil
 }
 
 func GetDeck(id string) (Deck, error) {
@@ -128,4 +116,40 @@ func copySlice(slice []Card, count int) []Card {
 		}
 	}
 	return cards
+}
+
+func QueryAllCards() ([]Card, error) {
+	var cards []Card
+	err := database.Connection.Select(&cards, "select * from cards;")
+	if err != nil {
+		// logs
+		return nil, err
+	}
+
+	return cards, nil
+}
+
+func StoreDeck(shuffled bool, remaining int, cards []Card) (Deck, error) {
+	tx := database.Connection.MustBegin()
+	// insertResult := tx.MustExec("INSERT INTO decks (shuffled, remaining) VALUES ($1, $2) RETURNING id;", deck.Shuffled, deck.Remaining)
+	var deckId string
+	tx.QueryRow("INSERT INTO decks (shuffled, remaining) VALUES ($1, $2) RETURNING id;", shuffled, remaining).Scan(&deckId)
+
+	for _, card := range cards {
+		tx.MustExec("INSERT INTO card_deck (card_id, deck_id) VALUES ($1, $2);", card.Id, deckId)
+	}
+
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return Deck{}, commitErr
+	}
+
+	var deck = Deck{
+		Id:        deckId,
+		Shuffled:  shuffled,
+		Remaining: remaining,
+		Cards:     cards,
+	}
+
+	return deck, nil
 }
