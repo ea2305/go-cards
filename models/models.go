@@ -51,7 +51,7 @@ func CreateDeck(shuffled bool, selection []string) (Deck, error) {
 	}
 
 	var deck = Deck{
-		Id:        uuid.NewString(), // TODO implement uuid
+		Id:        uuid.NewString(),
 		Shuffled:  shuffled,
 		Remaining: len(cards),
 		Cards:     cards,
