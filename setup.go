@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ea2305/go-cards/database"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -16,7 +17,6 @@ import (
 type App struct {
 	Server *http.Server
 	Router *mux.Router
-	DB     *sqlx.DB
 }
 
 type AppConfig struct {
@@ -57,20 +57,20 @@ func (app *App) initApp(config AppConfig) {
 		log.Fatalln(err.Error())
 	}
 
+	database.SetConnection(db)
 	app.Server = server
 	app.Router = router
-	app.DB = db
 }
 
 func (app *App) migrateTables() {
-	driver, err := postgres.WithInstance(app.DB.Unsafe().DB, &postgres.Config{})
+	driver, err := postgres.WithInstance(database.Connection.Unsafe().DB, &postgres.Config{})
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://db/migration",
+		"file://sql/migration",
 		"postgres", driver)
 
 	if err != nil {
@@ -81,14 +81,14 @@ func (app *App) migrateTables() {
 }
 
 func (app *App) rollbackTables() {
-	driver, err := postgres.WithInstance(app.DB.Unsafe().DB, &postgres.Config{})
+	driver, err := postgres.WithInstance(database.Connection.Unsafe().DB, &postgres.Config{})
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://db/migration",
+		"file://sql/migration",
 		"postgres", driver)
 
 	if err != nil {

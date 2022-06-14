@@ -1,5 +1,4 @@
 services:
-
   testing:
     build:
       context: .
@@ -12,7 +11,7 @@ services:
     environment:
       DB_USER: postgres
       DB_PASS: postgres
-      DB_NAME: postgres
+      DB_NAME: gocards
       DB_HOST: db-test
       DB_PORT: 5432
       DB_SSL: disable
@@ -23,8 +22,11 @@ services:
     image: postgres:14.3-alpine
     restart: always
     environment:
+      - POSTGRES_DB=gocards
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432"
     networks:

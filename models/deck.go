@@ -4,29 +4,36 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"strconv"
 
+	"github.com/ea2305/go-cards/database"
 	"github.com/google/uuid"
 )
 
 type Deck struct {
-	Id        string `json:"deck_id"`
-	Shuffled  bool   `json:"shuffled"`
-	Remaining int    `json:"remaining"`
+	Id        string `json:"deck_id" db:"id"`
+	Shuffled  bool   `json:"shuffled" db:"shuffled"`
+	Remaining int    `json:"remaining" db:"remaining"`
 	Cards     []Card `json:"cards"`
 }
 
 type Card struct {
-	Id    string `json:"card_id"`
-	Value string `json:"value"`
-	Suit  string `json:"suit"`
-	Code  string `json:"code"`
+	Id        string `json:"-" db:"id"`
+	Value     string `json:"value" db:"value"`
+	Suit      string `json:"suit" db:"suit"`
+	Code      string `json:"code" db:"code"`
+	CreatedAt string `json:"-" db:"created_at"`
 }
+
+// TODO remove when database is in place
 
 var decks []Deck
 
 func CreateDeck(shuffled bool, selection []string) (Deck, error) {
-	rawCards := GetCards()
+	rawCards, err := GetCards()
+	if err != nil {
+		return Deck{}, err
+	}
+
 	var cards []Card
 
 	if len(selection) > 0 {
@@ -68,31 +75,15 @@ func CreateDeck(shuffled bool, selection []string) (Deck, error) {
 	}
 }
 
-func GetCards() []Card {
+func GetCards() ([]Card, error) {
 	var cards []Card
-	var suits = [4]string{"CLUBS", "DIAMONDS", "HEARTS", "SPADES"}
-	var suit_codes = [4]string{"C", "D", "H", "S"}
-	var values = [13]string{"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"}
-
-	for i := 0; i < len(suits); i++ {
-		for j := 0; j < len(values); j++ {
-			var suit = suits[i]
-			var suitCode = suit_codes[i]
-			var value = values[j]
-			var code = suitCode + value
-
-			var card = Card{
-				Id:    suit + strconv.Itoa(j), // TODO: implements uuid generator
-				Value: value,
-				Suit:  suit,
-				Code:  code,
-			}
-
-			cards = append(cards, card)
-		}
+	err := database.Connection.Select(&cards, "select * from cards;")
+	if err != nil {
+		// logs
+		return nil, err
 	}
 
-	return cards
+	return cards, nil
 }
 
 func GetDeck(id string) (Deck, error) {

@@ -12,55 +12,27 @@ services:
     environment:
       DB_USER: postgres
       DB_PASS: postgres
-      DB_NAME: postgres
+      DB_NAME: gocards
       DB_HOST: db
       DB_PORT: 5432
       DB_SSL: disable
     networks:
       - backend
 
-  testing:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: "go test -v"
-    ports:
-      - "8081:8081"
-    depends_on: 
-      - db-test
-    environment:
-      DB_USER: postgres
-      DB_PASS: postgres
-      DB_NAME: postgres
-      DB_HOST: db-test
-      DB_PORT: 5432
-      DB_SSL: disable
-    networks:
-      - backend-test
-
   db:
     image: postgres:14.3-alpine
     restart: always
     environment:
+      - POSTGRES_DB=gocards
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5433:5432" # I'm using that port for my localdb
     volumes: 
       - db:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - backend
-
-  db-test:
-    image: postgres:14.3-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - "5432"
-    networks:
-      - backend-test
 
 volumes:
   db:
@@ -68,4 +40,3 @@ volumes:
 
 networks:
   backend:
-  backend-test:
