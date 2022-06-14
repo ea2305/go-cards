@@ -3,5 +3,5 @@ create table IF NOT EXISTS cards (
   value VARCHAR(50) NOT NULL,
   suit VARCHAR(50) NOT NULL,
   code VARCHAR(50) NOT null,
-  created_at timestamp
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
