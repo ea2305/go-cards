@@ -12,7 +12,8 @@ type Deck struct {
 	Id        string `json:"deck_id" db:"id"`
 	Shuffled  bool   `json:"shuffled" db:"shuffled"`
 	Remaining int    `json:"remaining" db:"remaining"`
-	Cards     []Card `json:"cards"`
+	Cards     []Card `json:"cards" db:"card"`
+	CreatedAt string `json:"-" db:"created_at"`
 }
 
 type Card struct {
@@ -75,13 +76,24 @@ func CreateDeck(shuffled bool, selection []string) (Deck, error) {
 }
 
 func GetDeck(id string) (Deck, error) {
-	// uses in memory deck, TODO implement database strategy
-	for _, deck := range decks {
-		if deck.Id == id {
-			return deck, nil
-		}
+	var deck Deck
+	var queryDeck = "select * from decks where id = $1;"
+	err := database.Connection.Get(&deck, queryDeck, id)
+	if err != nil {
+		// logs
+		return Deck{}, errors.New("deck not found")
 	}
-	return Deck{}, errors.New("deck not found")
+
+	var cards []Card
+	cardErr := database.Connection.Select(&cards, database.GetCardsByDeckId(), id)
+	if cardErr != nil {
+		// logs
+		return Deck{}, errors.New("cards in deck missing")
+	}
+
+	deck.Cards = cards
+
+	return deck, nil
 }
 
 func DrawCard(id string, count int) ([]Card, error) {
@@ -132,10 +144,10 @@ func QueryAllCards() ([]Card, error) {
 func StoreDeck(shuffled bool, remaining int, cards []Card) (Deck, error) {
 	tx := database.Connection.MustBegin()
 	var deckId string
-	tx.QueryRow("INSERT INTO decks (shuffled, remaining) VALUES ($1, $2) RETURNING id;", shuffled, remaining).Scan(&deckId)
+	tx.QueryRow("insert into decks (shuffled, remaining) values ($1, $2) RETURNING id;", shuffled, remaining).Scan(&deckId)
 
 	for _, card := range cards {
-		tx.MustExec("INSERT INTO card_deck (card_id, deck_id) VALUES ($1, $2);", card.Id, deckId)
+		tx.MustExec("insert into card_deck (card_id, deck_id) values ($1, $2);", card.Id, deckId)
 	}
 	commitErr := tx.Commit()
 	if commitErr != nil {
