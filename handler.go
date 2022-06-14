@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	m "github.com/ea2305/go-cards/models"
 	"github.com/gorilla/mux"
 )
 
@@ -52,7 +53,7 @@ func (a *App) CreateDeck(w http.ResponseWriter, r *http.Request) {
 		shuffled = parsed
 	}
 
-	deck, err := CreateDeck(shuffled, selection)
+	deck, err := m.CreateDeck(shuffled, selection)
 	if err != nil {
 		// logs
 		responseError(w, http.StatusBadRequest, err.Error())
@@ -69,7 +70,7 @@ func (a *App) GetDeck(w http.ResponseWriter, r *http.Request) {
 		responseError(w, http.StatusBadRequest, "missing id parameter")
 		return
 	}
-	var deck, err = GetDeck(id)
+	var deck, err = m.GetDeck(id)
 	if err != nil {
 		responseError(w, http.StatusNotFound, err.Error())
 		return
@@ -102,11 +103,11 @@ func (a *App) DrawCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cards, err = DrawCard(id, count)
+	var cards, err = m.DrawCard(id, count)
 	if err != nil {
 		// logs
 		responseError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	responseJson(w, http.StatusOK, map[string][]Card{"cards": cards})
+	responseJson(w, http.StatusOK, map[string][]m.Card{"cards": cards})
 }

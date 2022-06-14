@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	m "github.com/ea2305/go-cards/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,7 +78,7 @@ func TestCreateDeck(t *testing.T) {
 	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 201, response.Code)
 
-	var data Deck
+	var data m.Deck
 	json.Unmarshal(response.Body.Bytes(), &data)
 
 	assert.NotNil(t, data.Id)
@@ -96,7 +97,7 @@ func TestCreateShuffledDeck(t *testing.T) {
 	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 201, response.Code)
 
-	var data Deck
+	var data m.Deck
 	json.Unmarshal(response.Body.Bytes(), &data)
 
 	assert.NotNil(t, data.Shuffled)
@@ -116,7 +117,7 @@ func TestCreateCustomDeck(t *testing.T) {
 	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 201, response.Code)
 
-	var data Deck
+	var data m.Deck
 	json.Unmarshal(response.Body.Bytes(), &data)
 
 	assert.NotNil(t, data.Remaining)
@@ -155,7 +156,7 @@ func TestCreateCustomShuffledDeck(t *testing.T) {
 	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 201, response.Code)
 
-	var data Deck
+	var data m.Deck
 	json.Unmarshal(response.Body.Bytes(), &data)
 
 	assert.NotNil(t, data.Shuffled)
@@ -166,7 +167,7 @@ func TestCreateCustomShuffledDeck(t *testing.T) {
 }
 
 func TestGetDeck(t *testing.T) {
-	var deck, _ = CreateDeck(false, nil)
+	var deck, _ = m.CreateDeck(false, nil)
 	var id = deck.Id
 	var request, response, err = createRequest("GET", "/api/v1/decks/"+id, nil)
 	if err != nil {
@@ -175,7 +176,7 @@ func TestGetDeck(t *testing.T) {
 	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 200, response.Code)
 
-	var data Deck
+	var data m.Deck
 	json.Unmarshal(response.Body.Bytes(), &data)
 	assert.NotNil(t, data.Id)
 	assert.Equal(t, data.Id, id)
@@ -208,7 +209,7 @@ func TestGetDeckWrongUuidFormat(t *testing.T) {
 }
 
 func TestDrawCards(t *testing.T) {
-	var deck, _ = CreateDeck(false, nil)
+	var deck, _ = m.CreateDeck(false, nil)
 	var fistCardCode = deck.Cards[0].Code
 	var id = deck.Id
 	var request, response, err = createRequest("PATCH", fmt.Sprintf("/api/v1/decks/%v?count=1", id), nil)
@@ -218,7 +219,7 @@ func TestDrawCards(t *testing.T) {
 	app.Router.ServeHTTP(response, request)
 	assert.Equal(t, 200, response.Code)
 
-	var data map[string][]Card
+	var data map[string][]m.Card
 	json.Unmarshal(response.Body.Bytes(), &data)
 
 	assert.Equal(t, 1, len(data))
@@ -229,7 +230,7 @@ func TestDrawCards(t *testing.T) {
 }
 
 func TestDrawCardsWithGreaterCount(t *testing.T) {
-	var deck, _ = CreateDeck(false, nil)
+	var deck, _ = m.CreateDeck(false, nil)
 	var id = deck.Id
 	var request, response, err = createRequest("PATCH", fmt.Sprintf("/api/v1/decks/%v?count=54", id), nil)
 	if err != nil {
