@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 
 	"github.com/ea2305/go-cards/database"
@@ -56,12 +57,12 @@ func CreateDeck(shuffled bool, selection []string) (Deck, error) {
 	deck, storeErr := StoreDeck(shuffled, len(cards), cards)
 
 	if storeErr != nil {
-		// logs
+		log.Printf("[model:create-deck] store deck fails \n")
 		return deck, storeErr
 	}
 
 	if len(selection) > 0 {
-		// logs
+		log.Printf("[model:create-deck] selection had invalid cards %v \n", selection)
 		return deck, errors.New("some cards we not found: " + fmt.Sprint(selection))
 	} else {
 		return deck, nil
@@ -73,14 +74,14 @@ func GetDeck(id string) (Deck, error) {
 	var queryDeck = "select * from decks where id = $1;"
 	err := database.Connection.Get(&deck, queryDeck, id)
 	if err != nil {
-		// logs
+		log.Printf("[model:get-deck] get deck query failed for: %v \n", id)
 		return Deck{}, errors.New("deck not found")
 	}
 
 	var cards []Card
 	cardErr := database.Connection.Select(&cards, database.GetCardsByDeckId(), id)
 	if cardErr != nil {
-		// logs
+		log.Printf("[model:get-deck] get cards query failed for: %v \n", id)
 		return Deck{}, errors.New("cards in deck missing")
 	}
 
@@ -110,7 +111,7 @@ func DrawCard(id string, count int) ([]Card, error) {
 	tx.MustExec(database.UpdateRemainingCardsFromDeck(), deck.Remaining-count, deck.Id)
 	commitErr := tx.Commit()
 	if commitErr != nil {
-		return nil, commitErr
+		return nil, errors.New("transaction error draw method failed")
 	}
 
 	return cards, nil
@@ -120,7 +121,7 @@ func QueryAllCards() ([]Card, error) {
 	var cards []Card
 	err := database.Connection.Select(&cards, "select * from cards;")
 	if err != nil {
-		// logs
+		log.Printf("[model:query-all-cards] get all cards query failed \n")
 		return nil, err
 	}
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 )
 
@@ -23,6 +23,6 @@ func main() {
 	app.initApp(config)
 	app.migrateTables()
 
-	fmt.Printf("[Starting server in localhost%v...]", config.Addr)
+	log.Printf("Starting server at http://localhost%v \n", config.Addr)
 	app.Server.ListenAndServe()
 }

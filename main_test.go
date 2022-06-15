@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -49,8 +50,7 @@ func TestMain(m *testing.M) {
 func createRequest(verb string, route string, body io.Reader) (*http.Request, *httptest.ResponseRecorder, error) {
 	req, err := http.NewRequest(verb, route, body)
 	if err != nil {
-		// logs
-		fmt.Printf("Error creating request: [%v](%v)", verb, route)
+		log.Printf("Error creating request: [%v](%v)\n", verb, route)
 		return nil, nil, err
 	}
 	res := httptest.NewRecorder()

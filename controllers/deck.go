@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -22,7 +23,7 @@ func responseJson(w http.ResponseWriter, code int, payload interface{}) {
 
 	json, err := json.Marshal(payload)
 	if err != nil {
-		// logs
+		log.Printf("[response-json] marshal exception \n")
 		responseError(w, http.StatusInternalServerError, "response error")
 		return
 	}
@@ -46,7 +47,7 @@ func CreateDeck(w http.ResponseWriter, r *http.Request) {
 	if queryShuffle != "" {
 		var parsed, err = strconv.ParseBool(queryShuffle)
 		if err != nil {
-			// logs
+			log.Printf("[controller:create-deck] shuffled query serialization fails \n")
 			responseError(w, http.StatusBadRequest, "bad request")
 			return
 		}
@@ -55,7 +56,7 @@ func CreateDeck(w http.ResponseWriter, r *http.Request) {
 
 	deck, err := m.CreateDeck(shuffled, selection)
 	if err != nil {
-		// logs
+		log.Printf("[controller:create-deck] create deck failed \n")
 		responseError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -66,7 +67,7 @@ func GetDeck(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
 	if !ok {
-		// logs
+		log.Printf("[controller:get-deck] param id was not defined \n")
 		responseError(w, http.StatusBadRequest, "missing id parameter")
 		return
 	}
@@ -82,7 +83,7 @@ func DrawCard(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, ok := vars["id"]
 	if !ok {
-		// logs
+		log.Printf("[controller:draw-card] param id was not defined \n")
 		responseError(w, http.StatusBadRequest, "missing id parameter")
 		return
 	}
@@ -91,21 +92,21 @@ func DrawCard(w http.ResponseWriter, r *http.Request) {
 	if queryCount != "" {
 		var parsed, err = strconv.Atoi(queryCount)
 		if err != nil {
-			// logs
+			log.Printf("[controller:draw-card] count parse error \n")
 			responseError(w, http.StatusBadRequest, "wrong count format")
 			return
 		}
 		count = parsed
 	}
 	if count <= 0 {
-		// logs
+		log.Printf("[controller:draw-card] count is less equal than zero \n")
 		responseError(w, http.StatusBadRequest, "count should be a positive integer greater than zero")
 		return
 	}
 
 	var cards, err = m.DrawCard(id, count)
 	if err != nil {
-		// logs
+		log.Printf("[controller:draw-card] drawn cards from model fails \n")
 		responseError(w, http.StatusBadRequest, err.Error())
 		return
 	}

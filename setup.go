@@ -34,9 +34,18 @@ type DatabaseConfig struct {
 	ssl    string
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.RequestURI)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (app *App) initApp(config AppConfig) {
 	router := mux.NewRouter()
 	app.initRoutes(router)
+
+	router.Use(loggingMiddleware)
 
 	server := &http.Server{
 		Addr:    config.Addr,
