@@ -1,1 +1,1 @@
-CREATE DATABASE gocards;
+-- CREATE DATABASE gocards;
