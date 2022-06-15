@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -10,30 +9,6 @@ import (
 	m "github.com/ea2305/go-cards/models"
 	"github.com/gorilla/mux"
 )
-
-func responseError(w http.ResponseWriter, code int, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(map[string]string{"error": message})
-}
-
-func responseJson(w http.ResponseWriter, code int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-
-	json, err := json.Marshal(payload)
-	if err != nil {
-		log.Printf("[response-json] marshal exception \n")
-		responseError(w, http.StatusInternalServerError, "response error")
-		return
-	}
-	w.Write(json)
-}
-
-func HealthCheck(w http.ResponseWriter, r *http.Request) {
-	var status = map[string]string{"status": "ok"}
-	responseJson(w, http.StatusOK, status)
-}
 
 func CreateDeck(w http.ResponseWriter, r *http.Request) {
 	var queryShuffle = r.URL.Query().Get("shuffled")
