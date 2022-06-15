@@ -87,7 +87,6 @@ func TestCreateDeck(t *testing.T) {
 	assert.Equal(t, false, data.Shuffled)
 	assert.NotNil(t, data.Remaining)
 	assert.Equal(t, 52, data.Remaining)
-	assert.Equal(t, 52, len(data.Cards))
 }
 
 func TestCreateShuffledDeck(t *testing.T) {
@@ -105,7 +104,6 @@ func TestCreateShuffledDeck(t *testing.T) {
 	assert.Equal(t, true, data.Shuffled)
 	assert.NotNil(t, data.Remaining)
 	assert.Equal(t, 52, data.Remaining)
-	assert.Equal(t, 52, len(data.Cards))
 }
 
 func TestCreateCustomDeck(t *testing.T) {
@@ -123,12 +121,6 @@ func TestCreateCustomDeck(t *testing.T) {
 
 	assert.NotNil(t, data.Remaining)
 	assert.Equal(t, len(reqCards), data.Remaining)
-	assert.Equal(t, len(reqCards), len(data.Cards))
-	if len(data.Cards) == len(reqCards) {
-		for index, card := range reqCards {
-			assert.Equal(t, card, data.Cards[index].Code)
-		}
-	}
 }
 
 func TestCreateCustomDeckWithWrongFormat(t *testing.T) {
@@ -164,7 +156,6 @@ func TestCreateCustomShuffledDeck(t *testing.T) {
 	assert.NotNil(t, data.Remaining)
 	assert.Equal(t, true, data.Shuffled)
 	assert.Equal(t, len(reqCards), data.Remaining)
-	assert.Equal(t, len(reqCards), len(data.Cards))
 }
 
 func TestGetDeck(t *testing.T) {
