@@ -10,6 +10,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type DeckResponse struct {
+	Id        string `json:"deck_id"`
+	Shuffled  bool   `json:"shuffled"`
+	Remaining int    `json:"remaining"`
+}
+
 func CreateDeck(w http.ResponseWriter, r *http.Request) {
 	var queryShuffle = r.URL.Query().Get("shuffled")
 	var queryCards = r.URL.Query().Get("cards")
@@ -35,7 +41,12 @@ func CreateDeck(w http.ResponseWriter, r *http.Request) {
 		responseError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	responseJson(w, http.StatusCreated, deck)
+	customResponse := DeckResponse{
+		Id:        deck.Id,
+		Shuffled:  deck.Shuffled,
+		Remaining: deck.Remaining,
+	}
+	responseJson(w, http.StatusCreated, customResponse)
 }
 
 func GetDeck(w http.ResponseWriter, r *http.Request) {
