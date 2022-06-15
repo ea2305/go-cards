@@ -24,10 +24,6 @@ type Card struct {
 	CreatedAt string `json:"-" db:"created_at"`
 }
 
-// TODO remove when database is in place
-
-var decks []Deck
-
 func CreateDeck(shuffled bool, selection []string) (Deck, error) {
 	rawCards, err := QueryAllCards()
 	if err != nil {
@@ -58,9 +54,6 @@ func CreateDeck(shuffled bool, selection []string) (Deck, error) {
 	}
 
 	deck, storeErr := StoreDeck(shuffled, len(cards), cards)
-
-	// TODO provisional store strategy - clean up after open and draw are migrated
-	decks = append(decks, deck)
 
 	if storeErr != nil {
 		// logs
@@ -97,7 +90,6 @@ func GetDeck(id string) (Deck, error) {
 }
 
 func DrawCard(id string, count int) ([]Card, error) {
-	// inmemory implementation
 	var deck, err = GetDeck(id)
 	if err != nil {
 		return nil, err
@@ -106,28 +98,22 @@ func DrawCard(id string, count int) ([]Card, error) {
 	if len(deck.Cards) < count {
 		return nil, errors.New("not enough cards")
 	}
-	// get elements from the beginning of the list
-	var index = 0
-	var cards = make([]Card, count)
-	var copyCards = make([]Card, len(deck.Cards))
-	copy(copyCards, deck.Cards)
-	cards = copySlice(copyCards, count)
 
-	cardsUpdate := append(deck.Cards[:index], deck.Cards[index+count:]...)
-	copy(deck.Cards, cardsUpdate)
+	// get elements from the beginning of the list
+	cards := deck.Cards[:count]
+
+	tx := database.Connection.MustBegin()
+	for _, card := range cards {
+		tx.MustExec(database.DeleteCardInDeck(), deck.Id, card.Id)
+	}
+
+	tx.MustExec(database.UpdateRemainingCardsFromDeck(), deck.Remaining-count, deck.Id)
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		return nil, commitErr
+	}
 
 	return cards, nil
-}
-
-func copySlice(slice []Card, count int) []Card {
-	var cards []Card
-	for index, card := range slice {
-		cards = append(cards, card)
-		if index == count-1 {
-			return cards
-		}
-	}
-	return cards
 }
 
 func QueryAllCards() ([]Card, error) {
@@ -144,10 +130,10 @@ func QueryAllCards() ([]Card, error) {
 func StoreDeck(shuffled bool, remaining int, cards []Card) (Deck, error) {
 	tx := database.Connection.MustBegin()
 	var deckId string
-	tx.QueryRow("insert into decks (shuffled, remaining) values ($1, $2) RETURNING id;", shuffled, remaining).Scan(&deckId)
+	tx.QueryRow(database.InsertDeck(), shuffled, remaining).Scan(&deckId)
 
 	for _, card := range cards {
-		tx.MustExec("insert into card_deck (card_id, deck_id) values ($1, $2);", card.Id, deckId)
+		tx.MustExec(database.InsertCardInDeck(), card.Id, deckId)
 	}
 	commitErr := tx.Commit()
 	if commitErr != nil {

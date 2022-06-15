@@ -30,7 +30,6 @@ func setup() {
 		},
 	}
 
-	// TODO data store strategy
 	app.initApp(config)
 }
 
