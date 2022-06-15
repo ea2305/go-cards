@@ -24,5 +24,5 @@ func main() {
 	app.migrateTables()
 
 	log.Printf("Starting server at http://localhost%v \n", config.Addr)
-	app.Server.ListenAndServe()
+	log.Fatal(app.Server.ListenAndServe())
 }

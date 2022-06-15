@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ea2305/go-cards/database"
+	"github.com/ea2305/go-cards/middlewares"
+	"github.com/ea2305/go-cards/routes"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -34,22 +37,18 @@ type DatabaseConfig struct {
 	ssl    string
 }
 
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.RequestURI)
-		next.ServeHTTP(w, r)
-	})
-}
-
 func (app *App) initApp(config AppConfig) {
 	router := mux.NewRouter()
-	app.initRoutes(router)
+	routes.InitRoutes(router)
 
-	router.Use(loggingMiddleware)
+	router.Use(middlewares.LoggingMiddleware)
 
 	server := &http.Server{
-		Addr:    config.Addr,
-		Handler: router,
+		Addr:         config.Addr,
+		Handler:      router,
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
 	}
 
 	var connectionString = fmt.Sprintf(
