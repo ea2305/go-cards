@@ -1,2 +1,1 @@
-docker-compose build api
-docker-compose up db api
+docker-compose up --build --remove-orphans
