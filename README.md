@@ -10,7 +10,7 @@ This Repository implements methods to create, open and draw cards from one deck 
 
 |method|verb|endpoint|body|query-params|constrains|
 |---|---|---|---|---|---|
-|create deck|POST|/api/v1/decks|{}|shuffled boolean,cards []card_code| Selection list length should be more than 0, and s I has to be separated with semicolons. Shuffled is optional, if the query param is not provided the API will return the default order (card's number: A-K, suits: C,D,H,S)
+|create deck|POST|/api/v1/decks|{}|shuffled boolean, cards []card_code| the length of the selection list should be more than 0, and it has to be separated with semicolons. Shuffled param is optional, if the query param is not provided the API will return the default order (card's number: A-K, suits: C,D,H,S)
 |open deck|GET|/api/v1/decks/{id:uuid}|{}|{}|_ID_ is mandatory param, if the param is not provide the API will return an error. The ID should have the _UUID_ format|
 |draw card|PATCH|/api/v1/decks/{id:uuid}|{}|count int|count should be greater than zero. If the count exceeds the remaining amount of cards will return an error|
 
